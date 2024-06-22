@@ -55,8 +55,6 @@ public class ItemUtil {
 	public static final UUID MODIFIER_UUID_GENERIC_ATTACK_SPEED = UUID.fromString(
 			"FA233E1C-4180-4865-B01B-BCCE9785ACA3");
 
-	private static RandomSource randomSource = RandomSource.create();
-
 	public static void damage_item(final Player player, final ItemStack item_stack, final int amount) {
 		if (amount <= 0) {
 			return;
@@ -67,7 +65,7 @@ public class ItemUtil {
 			return;
 		}
 
-		handle.hurtAndBreak(amount, randomSource, player_handle(player), () -> {});
+		handle.hurtAndBreak(amount, Nms.world_handle(player.getWorld()), player_handle(player), (item) -> {});
 	}
 
 	public static String name_of(final ItemStack item) {
