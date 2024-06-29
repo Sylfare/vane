@@ -80,7 +80,7 @@ configure(subprojects.filter {
 		}
 
 		processResources {
-			filesMatching("**/plugin.yml") {
+			filesMatching("**/paper-plugin.yml") {
 				expand(project.properties)
 			}
 		}
