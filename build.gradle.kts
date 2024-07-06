@@ -138,6 +138,7 @@ configure(subprojects.filter {
 	dependencies {
 		implementation(group = "us.dynmap", name = "dynmap-api", version = "3.2-SNAPSHOT")
 		implementation(group = "de.bluecolored.bluemap", name = "BlueMapAPI", version = "2.7.2")
+		implementation(group = "xyz.jpenilla", name = "squaremap-api", version = "1.2.5")
 	}
 }
 

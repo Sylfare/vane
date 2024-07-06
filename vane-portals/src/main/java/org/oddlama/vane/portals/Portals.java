@@ -247,6 +247,7 @@ public class Portals extends Module<Portals> {
 	public PortalConstructor constructor;
 	public PortalDynmapLayer dynmap_layer;
 	public PortalBlueMapLayer blue_map_layer;
+	public PortalSquaremapLayer squaremap_layer;
 
 	public Portals() {
 		register_entities();
@@ -259,6 +260,8 @@ public class Portals extends Module<Portals> {
 		new EntityMoveProcessor(this);
 		dynmap_layer = new PortalDynmapLayer(this);
 		blue_map_layer = new PortalBlueMapLayer(this);
+		squaremap_layer = new PortalSquaremapLayer(this);
+
 
 		// Register admin permission
 		admin_permission =
@@ -918,6 +921,7 @@ public class Portals extends Module<Portals> {
 	public void update_marker(final Portal portal) {
 		dynmap_layer.update_marker(portal);
 		blue_map_layer.update_marker(portal);
+		squaremap_layer.update_marker(portal);
 	}
 
 	public void remove_marker(final UUID portal_id) {

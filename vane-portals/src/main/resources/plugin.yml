@@ -6,7 +6,7 @@ authors: [oddlama]
 website: 'https://github.com/oddlama/vane'
 
 depend: [vane-core]
-softdepend: [dynmap, BlueMap]
+softdepend: [dynmap, BlueMap, squaremap]
 
 main: org.oddlama.vane.portals.Portals
 database: false
