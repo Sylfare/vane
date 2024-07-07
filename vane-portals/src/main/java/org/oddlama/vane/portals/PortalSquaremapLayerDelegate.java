@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -82,9 +83,7 @@ public class PortalSquaremapLayerDelegate {
 
             update_marker(portal);     
         });
-    }
-
-    
+    }    
 
     public void on_disable() {
         get_module().log.info("Disabling squaremap integration");
@@ -93,22 +92,35 @@ public class PortalSquaremapLayerDelegate {
 
     public void update_marker(final Portal portal) {
         World world = portal.spawn().getWorld();
-        PortalLayerProvider provider = providers.get(BukkitAdapter.worldIdentifier(world));
+        PortalLayerProvider provider = get_provider(world);
+
         if(provider == null) {
             return;
         }
         if(portal.visibility() == Portal.Visibility.PRIVATE) {
-            provider.remove(Position.of(portal.spawn()));
+            remove_marker(portal);
             return;
         }
 
-
-        provider.add(Position.of(portal.spawn()), portal.name());
+        provider.add(portal, portal.name());
     }
 
     public void update_all_markers() {
         for(final var portal : get_module().all_available_portals()) {
             update_marker(portal);
+        }
+    }
+
+	public void remove_marker(Portal portal) {
+		Location portal_location = portal.spawn();
+		PortalLayerProvider provider = get_provider(portal_location.getWorld());
+		provider.remove(id_for(portal));
+	}
+
+    public void remove_marker(UUID portal_id) {
+        var markerData = providers.entrySet().stream().filter(entry -> entry.getValue().data.containsKey(id_for(portal_id))).findFirst();
+        if(markerData.isPresent()) {
+            markerData.get().getValue().remove(id_for(portal_id));
         }
     }
 
@@ -123,6 +135,7 @@ public class PortalSquaremapLayerDelegate {
         if (mapWorld == null) {
             return null;
         }
+        
         // no provider was found, create one
         provider = new PortalLayerProvider();
         Key key = Key.of("portals");
@@ -132,19 +145,30 @@ public class PortalSquaremapLayerDelegate {
         
     }
 
-    class PortalLayerProvider implements LayerProvider {
-        private final Map<Position, Data> data = new ConcurrentHashMap<Position, Data>();
+	private String id_for(final UUID portal_id) {
+		return portal_id.toString();
+	}
 
-        // TODO add in config/lang
+	private String id_for(final Portal portal) {
+		return id_for(portal.id());
+	}
+
+	private Point to_point(final Portal portal) {
+		final Location point = portal.spawn();
+		return Point.of(point.x(), point.z());
+	}
+
+    class PortalLayerProvider implements LayerProvider {
+        private final Map<String, Data> data = new ConcurrentHashMap<String, Data>();
+
         @Override
         public @NonNull String getLabel() {
-            return "Portals";
+            return parent.lang_layer_label.str();
         }
 
-        // TODO config
         @Override
         public int layerPriority() {
-            return 0;
+            return parent.config_layer_priority;
         }
 
         @Override
@@ -152,33 +176,23 @@ public class PortalSquaremapLayerDelegate {
             return this.data.values().stream().map(Data::marker).collect(Collectors.toSet());
         }
 
-        public void add(Position position, String name) {
+        public void add(Portal portal, String name) {
             name = name == null ? "null" : name;
-            Icon icon = Marker.icon(position.point(), ICON_KEY, 16);
+            Icon icon = Marker.icon(to_point(portal), ICON_KEY, parent.config_icon_size);
             icon.markerOptions(
                 MarkerOptions.builder().hoverTooltip(name)
             );
-            this.data.put(position, new Data(icon, ICON_KEY, name));
+            this.data.put(id_for(portal), new Data(icon, ICON_KEY, name));
         }
 
-        public void remove(Position position) {
-            if(position == null) {
+        public void remove(String portal_id) {
+            if(portal_id == null) {
                 return;
             }
-            this.data.remove(position);
+            this.data.remove(portal_id);
         }
         
     }
 
-    record Position(int x, int y, int z) {
-        public Point point() {
-            return Point.of(x, z);
-        }
-        public static Position of(Location loc){
-            return new Position(loc.blockX(), loc.blockY(), loc.blockZ());
-        }
-    };
     record Data(Marker marker, Key key, String name) {}
-
-    
 }

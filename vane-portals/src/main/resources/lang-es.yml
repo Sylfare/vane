@@ -12,7 +12,7 @@
 
 # ¡NO CAMBIAR! La versión de este archivo de idioma. Se utiliza para determinar
 # si el archivo necesita actualizarse.
-version: 5
+version: 6
 # El código de idioma correspondiente utilizado en paquetes de recursos. Utilizado para
 # generación de paquetes de recursos. Por lo general, es una combinación de
 # el código de idioma (ISO 639) y el código de país (ISO 3166).
@@ -104,6 +104,10 @@ blue_map:
   # La etiqueta para los marcadores de portal de BlueMap. Admite HTML. Los argumentos se escaparán correctamente.
   # %1$s: Nombre del portal
   marker_label: "<span style=\"color: white\">🌌 %1$s</span>"
+
+squaremap:
+  # La etiqueta para el conjunto de marcadores de Squaremap
+  layer_label: "Portales"
 
 menus:
   # Configuraciones para el menú de nombramiento del portal.
