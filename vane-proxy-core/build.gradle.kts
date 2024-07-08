@@ -3,8 +3,8 @@ plugins {
 }
 
 dependencies {
-    implementation(group = "com.electronwill.night-config", name = "toml", version = "3.6.4")
-    implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.30")
+    implementation(group = "com.electronwill.night-config", name = "toml", version = "3.8.0")
+    implementation(group = "org.slf4j", name = "slf4j-api", version = "2.0.13")
     implementation(rootProject.project(":vane-core"))
 }
 
