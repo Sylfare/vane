@@ -1,4 +1,4 @@
-package org.oddlama.vane.portals;
+package org.oddlama.vane.bedtime;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -14,11 +14,11 @@ import javax.imageio.ImageIO;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.plugin.Plugin;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.Nullable;
-import org.oddlama.vane.portals.portal.Portal;
 
 import xyz.jpenilla.squaremap.api.BukkitAdapter;
 import xyz.jpenilla.squaremap.api.Key;
@@ -32,19 +32,19 @@ import xyz.jpenilla.squaremap.api.marker.Icon;
 import xyz.jpenilla.squaremap.api.marker.Marker;
 import xyz.jpenilla.squaremap.api.marker.MarkerOptions;
 
-public class PortalSquaremapLayerDelegate {
+public class BedtimeSquaremapLayerDelegate {
 
-    public final Key ICON_KEY = Key.of("vane_portal");
+    public final Key ICON_KEY = Key.of("vane_beds");
 
-    private final PortalSquaremapLayer parent;
+    private final BedtimeSquaremapLayer parent;
     private Squaremap squaremap_api;
-    private Map<WorldIdentifier, PortalLayerProvider> providers = new HashMap<WorldIdentifier, PortalLayerProvider>(){};
+    private Map<WorldIdentifier, PlayerLayerProvider> providers = new HashMap<WorldIdentifier, PlayerLayerProvider>(){};
 
-    public PortalSquaremapLayerDelegate(PortalSquaremapLayer parent) {
+    public BedtimeSquaremapLayerDelegate(BedtimeSquaremapLayer parent) {
         this.parent = parent;
     }
 
-    public Portals get_module() {
+    public Bedtime get_module() {
 		return parent.get_module();
 	}
 
@@ -60,7 +60,7 @@ public class PortalSquaremapLayerDelegate {
     }
 
     public void register_icon(){
-        String filename = "icons" + File.separator + "portal.png";
+        String filename = "icons" + File.separator + "bed.png";
         File file = new File(get_module().getDataFolder(), filename);
         if(!file.exists()) {
             get_module().saveResource(filename, false);
@@ -70,7 +70,7 @@ public class PortalSquaremapLayerDelegate {
             BufferedImage image = ImageIO.read(file);
             squaremap_api.iconRegistry().register(ICON_KEY, image);
         } catch (IOException e) {
-            get_module().log.warning("Failed to register portal icon:" + e);
+            get_module().log.warning("Failed to register bed icon:" + e);
         }
     }
 
@@ -79,31 +79,26 @@ public class PortalSquaremapLayerDelegate {
         squaremap_api = null;
     }
 
-    public void update_marker(final Portal portal) {
-        World world = portal.spawn().getWorld();
-        PortalLayerProvider provider = get_provider(world);
+    public void update_marker(final OfflinePlayer player) {
+        World world = player.getRespawnLocation().getWorld();
+        PlayerLayerProvider provider = get_provider(world);
 
         if(provider == null) {
             return;
         }
-        if(portal.visibility() == Portal.Visibility.PRIVATE) {
-            remove_marker(portal);
-            return;
-        }
 
-        provider.add(portal, portal.name());
+        provider.add(player);
     }
 
     public void update_all_markers() {
-        for(final var portal : get_module().all_available_portals()) {
-            update_marker(portal);
+        for(final var player : get_module().get_offline_players_with_valid_name()) {
+            update_marker(player);
         }
     }
 
-	public void remove_marker(Portal portal) {
-		Location portal_location = portal.spawn();
-		PortalLayerProvider provider = get_provider(portal_location.getWorld());
-		provider.remove(id_for(portal));
+	public void remove_marker(OfflinePlayer player) {
+		PlayerLayerProvider provider = get_provider(player.getRespawnLocation().getWorld());
+		provider.remove(id_for(player));
 	}
 
     public void remove_marker(UUID portal_id) {
@@ -113,9 +108,9 @@ public class PortalSquaremapLayerDelegate {
         }
     }
 
-    public PortalLayerProvider get_provider(World world) {
+    public PlayerLayerProvider get_provider(World world) {
         var world_identifier = BukkitAdapter.worldIdentifier(world);
-        PortalLayerProvider provider = this.providers.get(world_identifier);
+        PlayerLayerProvider provider = this.providers.get(world_identifier);
         if(provider != null) {
             return provider;
         }
@@ -126,8 +121,8 @@ public class PortalSquaremapLayerDelegate {
         }
         
         // no provider was found, create one
-        provider = new PortalLayerProvider();
-        Key key = Key.of("portals");
+        provider = new PlayerLayerProvider();
+        Key key = Key.of("bedtime");
         mapWorld.layerRegistry().register(key, provider);
         this.providers.put(mapWorld.identifier(), provider);
         return provider;
@@ -138,16 +133,16 @@ public class PortalSquaremapLayerDelegate {
 		return portal_id.toString();
 	}
 
-	private String id_for(final Portal portal) {
-		return id_for(portal.id());
+	private String id_for(final OfflinePlayer player) {
+		return id_for(player.getUniqueId());
 	}
 
-	private Point to_point(final Portal portal) {
-		final Location point = portal.spawn();
+	private Point to_point(final OfflinePlayer player) {
+		final Location point = player.getRespawnLocation();
 		return Point.of(point.x(), point.z());
 	}
 
-    class PortalLayerProvider implements LayerProvider {
+    class PlayerLayerProvider implements LayerProvider {
         private final Map<String, Data> data = new ConcurrentHashMap<String, Data>();
 
         @Override
@@ -165,13 +160,16 @@ public class PortalSquaremapLayerDelegate {
             return this.data.values().stream().map(Data::marker).collect(Collectors.toSet());
         }
 
-        public void add(Portal portal, String name) {
-            name = name == null ? "null" : name;
-            Icon icon = Marker.icon(to_point(portal), ICON_KEY, parent.config_icon_size);
+        public void add(OfflinePlayer player) {
+            if(!player.hasPlayedBefore()) {
+                return;
+            }
+
+            Icon icon = Marker.icon(to_point(player), ICON_KEY, parent.config_icon_size);
             icon.markerOptions(
-                MarkerOptions.builder().hoverTooltip(name)
+                MarkerOptions.builder().hoverTooltip(player.getName())
             );
-            this.data.put(id_for(portal), new Data(icon, ICON_KEY, name));
+            this.data.put(id_for(player), new Data(icon, ICON_KEY, player.getName()));
         }
 
         public void remove(String portal_id) {
