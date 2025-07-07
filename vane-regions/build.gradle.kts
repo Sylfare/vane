@@ -1,11 +1,11 @@
 plugins {
-	id("io.github.goooler.shadow") version "8.1.8"
+	alias(libs.plugins.shadow)
 }
 
 dependencies {
 	implementation(project(":vane-portals"))
-	compileOnly(group = "com.github.MilkBowl", name = "VaultAPI", version = "1.7.1")
-	compileOnly(group = "org.json", name = "json", version = "20250107")
+	compileOnly(libs.vault)
+	compileOnly(libs.json)
 }
 
 tasks {

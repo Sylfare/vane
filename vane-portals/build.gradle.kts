@@ -1,9 +1,9 @@
 plugins {
-	id("io.github.goooler.shadow") version "8.1.8"
+	alias(libs.plugins.shadow)
 }
 
 dependencies {
-	compileOnly(group = "org.json", name = "json", version = "20250107")
+	compileOnly(libs.json)
 }
 
 tasks {

@@ -1,11 +1,11 @@
 plugins {
 	`java-library`
-	id("io.papermc.paperweight.userdev") version "2.0.0-beta.16"
-	id("xyz.jpenilla.run-paper") version "2.3.1" // Adds runServer and runMojangMappedServer tasks for testing
+    alias(libs.plugins.paperweightUserdev)
+	alias(libs.plugins.runPaper) // Adds runServer and runMojangMappedServer tasks for testing
 }
 
 dependencies {
-	paperweight.paperDevBundle("1.21.5-R0.1-SNAPSHOT")
+	paperweight.paperDevBundle(rootProject.libs.versions.paper)
 }
 
 java {
@@ -43,8 +43,8 @@ subprojects {
 	}
 
 	dependencies {
-		compileOnly(group = "org.jetbrains", name = "annotations", version = "26.0.1")
-		annotationProcessor("org.jetbrains:annotations:26.0.1")
+		compileOnly(rootProject.libs.annotations)
+		annotationProcessor(rootProject.libs.annotations)
 	}
 }
 
@@ -59,7 +59,7 @@ configure(subprojects.filter {
 	}
 
 	dependencies {
-		paperweight.paperDevBundle("1.21.5-R0.1-SNAPSHOT")
+		paperweight.paperDevBundle(rootProject.libs.versions.paper)
 	}
 }
 
@@ -102,7 +102,7 @@ configure(subprojects.filter {
 	}
 
 	dependencies {
-		implementation(group = "com.comphenix.protocol", name = "ProtocolLib", version = "5.3.0")
+		implementation(rootProject.libs.protocollib)
 
 		compileOnly(project(":vane-annotations"))
 		annotationProcessor(project(path = ":vane-annotations", configuration = "reobf"))
@@ -139,8 +139,8 @@ configure(subprojects.filter {
 	listOf("vane-bedtime", "vane-portals", "vane-regions").contains(it.name)
 }) {
 	dependencies {
-		implementation(group = "us.dynmap", name = "DynmapCoreAPI", version = "3.7-beta-6")
-		implementation(group = "de.bluecolored", name = "bluemap-api", version = "2.7.3")
+		implementation(rootProject.libs.dynmap)
+		implementation(rootProject.libs.bluemap)
 	}
 }
 
